@@ -147,16 +147,3 @@ exports.exportExpenses = async (req, res, next) => {
     next(error);
   }
 };
-
-// Створення нової категорії
-exports.createCategory = async (req, res, next) => {
-  try {
-    const { name, description } = req.body;
-    const category = await Category.create({ name, description });
-    res.status(201).json(category);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// test

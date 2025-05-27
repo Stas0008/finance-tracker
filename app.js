@@ -8,6 +8,7 @@ const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const indexRouter = require('./routes/index');
 
+const port = 3001;
 const app = express();
 
 // Завантаження Swagger документації
@@ -26,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/api/expenses', require('./routes/expenses'));
-
+app.use('/api/categories', require('./routes/categories'));
 app.get('/', (req, res) => res.send('Finance Tracker API'));
 
 
@@ -51,7 +52,7 @@ app.use((err, req, res, next) => {
 });
 
 connectToDb().then(() => {
-  app.listen(3000, () => console.log('Server running on port 3000'));
+  app.listen(port, () => console.log(`Server running on port ${port}`));
 });
 
 app.use((req, res, next) => {

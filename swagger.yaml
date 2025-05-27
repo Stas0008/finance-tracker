@@ -4,7 +4,7 @@ info:
   description: API для ведення особистого бюджету з функціями створення, редагування, видалення витрат, перегляду статистики та експорту даних у CSV.
   version: 1.0.0
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3001
     description: Local server
 paths:
   /api/expenses:
@@ -179,7 +179,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /api/expenses/categories:
+  /api/categories:
     post:
       summary: Створити нову категорію
       tags:
@@ -197,6 +197,102 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Category'
+        '500':
+          description: Помилка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: Отримати список категорій
+      tags:
+        - Categories
+      responses:
+        '200':
+          description: Список категорій
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '500':
+          description: Помилка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/categories/{id}:
+    put:
+      summary: Оновити категорію
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID категорії
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '200':
+          description: Категорія оновлена успішно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          description: Категорію не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Помилка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Видалити категорію
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID категорії
+      responses:
+        '200':
+          description: Категорія видалена успішно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Category deleted successfully
+        '400':
+          description: Категорія пов'язана з витратами
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Категорію не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Помилка сервера
           content:
