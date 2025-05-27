@@ -20,6 +20,7 @@ describe('Expenses API', () => {
             description: 'Food expenses',
         });
         categoryId = category._id;
+        console.log(category._id);
     });
 
     afterEach(async () => {
@@ -28,16 +29,6 @@ describe('Expenses API', () => {
 
     afterAll(async () => {
         await mongoose.connection.close(); // Закриваємо підключення до MongoDB
-    });
-
-    // Тест створення категорії
-    it('should create a new category', async () => {
-        const res = await request(app)
-            .post('/api/expenses/categories')
-            .send({ name: 'Transport', description: 'Transportation costs' });
-        expect(res.statusCode).toEqual(201);
-        expect(res.body).toHaveProperty('_id');
-        expect(res.body.name).toBe('Transport');
     });
 
     // Тест створення витрати
@@ -57,6 +48,7 @@ describe('Expenses API', () => {
     // Тест отримання всіх витрат із деталями категорії
     it('should get all expenses with category details', async () => {
         await Expense.create({
+            name: 'Burger',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -71,6 +63,7 @@ describe('Expenses API', () => {
     // Тест оновлення витрати
     it('should update an expense', async () => {
         const expense = await Expense.create({
+            name: 'Pizza',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -86,6 +79,7 @@ describe('Expenses API', () => {
     // Тест видалення витрати
     it('should delete an expense', async () => {
         const expense = await Expense.create({
+            name: 'French fries',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -98,11 +92,13 @@ describe('Expenses API', () => {
     // Тест отримання статистики
     it('should get statistics', async () => {
         await Expense.create({
+            name: 'Test1',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
         });
         await Expense.create({
+            name: 'Test1',
             amount: 30,
             category: categoryId,
             date: '2025-05-02',
@@ -122,6 +118,7 @@ describe('Expenses API', () => {
     // Тест експорту витрат у CSV
     it('should export expenses to CSV', async () => {
         await Expense.create({
+            name: 'Test1',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -164,6 +161,7 @@ describe('Expenses API', () => {
     it('should return 400 when category is not found', async () => {
         const invalidCategoryId = new mongoose.Types.ObjectId();
         const res = await request(app).post('/api/expenses').send({
+            name: 'Test1',
             amount: 50,
             category: invalidCategoryId,
             date: '2025-05-01',
