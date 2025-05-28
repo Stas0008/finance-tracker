@@ -27,6 +27,7 @@ exports.createExpense = async (req, res, next) => {
 exports.getAllExpenses = async (req, res, next) => {
     try {
         const expenses = await Expense.find().populate('category', 'name description');
+        console.log(Expense.find().populate('category', 'name description'))
         res.status(200).json(expenses);
     } catch (error) {
         next(error);
@@ -52,6 +53,26 @@ exports.updateExpense = async (req, res, next) => {
             return res.status(404).json({ message: 'Expense not found' });
         }
         res.status(200).json(expense);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Видалення витрати
+exports.deleteExpenses = async (req, res, next) => {
+    try {
+        let expense = await Expense.findById(req.params.id);
+        let i = 0;
+        if (!expense)
+            return res.status(404).json({ message: 'Expenses not found' });
+
+        while (expense) {
+            i++;
+            await Expense.findByIdAndDelete(req.params.id);
+            expense = await Expense.findById(req.params.id);
+        }
+
+        res.status(200).json({ message: `${i} expenses deleted successfully` });
     } catch (error) {
         next(error);
     }
