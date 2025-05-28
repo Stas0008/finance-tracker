@@ -26,8 +26,11 @@ exports.createExpense = async (req, res, next) => {
 // Отримання всіх витрат з популяцією категорій
 exports.getAllExpenses = async (req, res, next) => {
     try {
+        if (req.headers['x-force-error'] === 'true') {
+            throw new Error('Forced error for testing');
+        }
+
         const expenses = await Expense.find().populate('category', 'name description');
-        console.log(Expense.find().populate('category', 'name description'))
         res.status(200).json(expenses);
     } catch (error) {
         next(error);
@@ -59,26 +62,6 @@ exports.updateExpense = async (req, res, next) => {
 };
 
 // Видалення витрати
-exports.deleteExpenses = async (req, res, next) => {
-    try {
-        let expense = await Expense.findById(req.params.id);
-        let i = 0;
-        if (!expense)
-            return res.status(404).json({ message: 'Expenses not found' });
-
-        while (expense) {
-            i++;
-            await Expense.findByIdAndDelete(req.params.id);
-            expense = await Expense.findById(req.params.id);
-        }
-
-        res.status(200).json({ message: `${i} expenses deleted successfully` });
-    } catch (error) {
-        next(error);
-    }
-};
-
-// Видалення витрати
 exports.deleteExpense = async (req, res, next) => {
     try {
         const expense = await Expense.findByIdAndDelete(req.params.id);
@@ -103,7 +86,12 @@ exports.getStatistics = async (req, res, next) => {
         // Загальна сума витрат
         const total = await Expense.aggregate([
             { $match: filter },
-            { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
+            {
+              $group: {
+                _id: '$category',
+                totalAmount: { $sum: '$amount' },
+              },
+            },
         ]);
 
         // Розподіл за категоріями з популяцією назв
@@ -131,6 +119,11 @@ exports.getStatistics = async (req, res, next) => {
             { $match: filter },
             { $group: { _id: null, averageAmount: { $avg: '$amount' } } },
         ]);
+
+        console.log('Filter:', filter);
+        console.log('Aggregate result:', average);
+        console.log(total[0]);
+        console.log(average[0]);
 
         res.status(200).json({
             totalAmount: total[0]?.totalAmount || 0,
