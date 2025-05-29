@@ -11,7 +11,6 @@ const indexRouter = require('./routes/index');
 const categoriesRouter = require('./routes/categories');
 const expensesRouter = require('./routes/expenses');
 
-
 const port = 3001;
 const app = express();
 
@@ -32,20 +31,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/expenses', expensesRouter);
+app.use('/trigger-error', (req, res, next) => {
+    next(new Error('Test error'));
+});
 
 app.get('/', (req, res) => res.send('Finance Tracker API'));
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
     next(createError(404));
-});
-
-// Симуляція помилки для тестування
-app.use((req, res, next) => {
-    if (req.headers['x-force-error']) {
-        return next(new Error('Forced error for testing'));
-    }
-    next();
 });
 
 // Глобальний обробник помилок
@@ -56,13 +50,6 @@ app.use((err, req, res, next) => {
 
 connectToDb().then(() => {
     app.listen(port, () => console.log(`Server running on port ${port}`));
-});
-
-app.use((req, res, next) => {
-    if (req.headers['x-force-error']) {
-        return next(new Error('Forced error for testing'));
-    }
-    next();
 });
 
 module.exports = app;

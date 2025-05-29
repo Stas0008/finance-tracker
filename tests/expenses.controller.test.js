@@ -19,7 +19,7 @@ describe('Expenses API', () => {
             name: 'Food',
             description: 'Food expenses',
         });
-        categoryId = category._id;
+        categoryId = category.id;
     });
 
     afterEach(async () => {
@@ -58,12 +58,11 @@ describe('Expenses API', () => {
     // Тест для перевірки валідації
     it('should return 400 if required fields are missing', async () => {
         const res = await request(app).post('/api/expenses').send({});
-        
+
         expect(res.statusCode).toBe(400);
         expect(res.body).toHaveProperty('message');
         expect(res.body.message).toMatch(/(name|amount|category|date)/i); // Перевіряє, що є повідомлення про відсутнє поле
     });
-
 
     // Тест отримання всіх витрат із деталями категорії
     it('should get all expenses with category details', async () => {
@@ -87,7 +86,7 @@ describe('Expenses API', () => {
             date: '2025-05-01',
         });
         const res = await request(app)
-            .put(`/api/expenses/${expense._id}`)
+            .put(`/api/expenses/${expense.id}`)
             .send({ amount: 75, category: categoryId });
         expect(res.statusCode).toEqual(200);
         expect(res.body.amount).toBe(75);
@@ -101,7 +100,7 @@ describe('Expenses API', () => {
             category: categoryId,
             date: '2025-05-01',
         });
-        const res = await request(app).delete(`/api/expenses/${expense._id}`);
+        const res = await request(app).delete(`/api/expenses/${expense.id}`);
         expect(res.statusCode).toEqual(200);
         expect(res.body.message).toBe('Expense deleted successfully');
     });
@@ -123,11 +122,8 @@ describe('Expenses API', () => {
             '/api/expenses/statistics?startDate=2025-05-01&endDate=2025-05-31',
         );
 
-
         expect(res.body.byCategory).toEqual(
-          expect.arrayContaining([
-            { _id: 'Food', totalAmount: 80 }
-          ])
+            expect.arrayContaining([{ _id: 'Food', totalAmount: 80 }]),
         );
 
         expect(res.statusCode).toEqual(200);
@@ -151,7 +147,9 @@ describe('Expenses API', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.header['content-type']).toContain('text/csv');
         expect(res.header['content-disposition']).toContain('attachment; filename="expenses.csv"');
-        expect(res.text).toContain('"_id","amount","category.name","date","description","createdAt","updatedAt"');
+        expect(res.text).toContain(
+            '"_id","amount","category.name","date","description","createdAt","updatedAt"',
+        );
         expect(res.text).toContain('50,"Food"');
     });
 
@@ -180,8 +178,6 @@ describe('Expenses API', () => {
             await expect(connectDB()).rejects.toThrow('Connection failed');
         });
     });
-
-
 
     // Тест для помилки агрегації в getStatistics
     it('should handle error in getStatistics', async () => {

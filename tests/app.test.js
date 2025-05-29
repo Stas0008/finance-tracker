@@ -1,4 +1,5 @@
 const request = require('supertest');
+const errorApp = require('express')();
 const app = require('../../mongooselab-Dream63/app');
 
 describe('App entrypoint', () => {
@@ -15,7 +16,7 @@ describe('App entrypoint', () => {
     });
 
     it('should serve Swagger UI on /api-docs', async () => {
-        const res = await request(app).get('/api-docs');
+        const res = await request(app).get('/api-docs/');
         expect(res.statusCode).toBe(200);
         expect(res.text).toContain('Swagger UI');
     });
@@ -28,7 +29,6 @@ describe('App entrypoint', () => {
 
     it('should handle errors gracefully (500)', async () => {
         // Штучно згенеруємо помилку
-        const errorApp = require('express')();
         errorApp.get('/error', (req, res, next) => {
             const err = new Error('Forced error');
             err.status = 500;
@@ -38,5 +38,9 @@ describe('App entrypoint', () => {
         const res = await request(errorApp).get('/error');
         expect(res.statusCode).toBe(500);
         expect(res.text).toContain('Error');
+    });
+    it('should return 404 for unknown routes', async () => {
+        const res = await request(app).get('/non-existent');
+        expect(res.statusCode).toBe(404);
     });
 });

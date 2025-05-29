@@ -14,12 +14,12 @@ exports.createExpense = async (req, res, next) => {
 
         const expense = new Expense({ amount, category, date, description });
         await expense.save();
-        res.status(201).json(expense);
+        return res.status(201).json(expense);
     } catch (error) {
         if (error.name === 'ValidationError') {
             return res.status(400).json({ message: error.message });
         }
-        next(error);
+        return next(error);
     }
 };
 
@@ -55,9 +55,9 @@ exports.updateExpense = async (req, res, next) => {
         if (!expense) {
             return res.status(404).json({ message: 'Expense not found' });
         }
-        res.status(200).json(expense);
+        return res.status(200).json(expense);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
 
@@ -68,9 +68,9 @@ exports.deleteExpense = async (req, res, next) => {
         if (!expense) {
             return res.status(404).json({ message: 'Expense not found' });
         }
-        res.status(200).json({ message: 'Expense deleted successfully' });
+        return res.status(200).json({ message: 'Expense deleted successfully' });
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
 
@@ -87,10 +87,10 @@ exports.getStatistics = async (req, res, next) => {
         const total = await Expense.aggregate([
             { $match: filter },
             {
-              $group: {
-                _id: '$category',
-                totalAmount: { $sum: '$amount' },
-              },
+                $group: {
+                    _id: '$category',
+                    totalAmount: { $sum: '$amount' },
+                },
             },
         ]);
 

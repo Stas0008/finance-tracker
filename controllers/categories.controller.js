@@ -39,9 +39,9 @@ exports.deleteCategory = async (req, res, next) => {
             return res.status(404).json({ message: 'Category not found' });
         }
 
-        res.json({ message: 'Category deleted successfully' });
+        return res.json({ message: 'Category deleted successfully' });
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
 
@@ -61,8 +61,8 @@ exports.updateCategory = async (req, res, next) => {
             return res.status(404).json({ message: 'Category not found' });
         }
 
-        res.json(updatedCategory);
+        return res.json(updatedCategory);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
