@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
-const expenseSchema = new mongoose.Schema({
+const categorySchema = new mongoose.Schema({
     name: { type: String, required: true, min: 1 },
     description: { type: String },
 });
 
-module.exports = mongoose.models.Expense || mongoose.model('Expense', expenseSchema);
+module.exports = mongoose.models.Category || mongoose.model('Category', categorySchema);

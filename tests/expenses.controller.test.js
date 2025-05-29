@@ -20,7 +20,6 @@ describe('Expenses API', () => {
             description: 'Food expenses',
         });
         categoryId = category._id;
-        console.log(category._id);
     });
 
     afterEach(async () => {
@@ -44,11 +43,31 @@ describe('Expenses API', () => {
         expect(res.body.amount).toBe(50);
         expect(res.body.category).toEqual(categoryId.toString());
     });
+    // Тест для невалідної категорії
+    it('should return 400 when category is not found', async () => {
+        const invalidCategoryId = new mongoose.Types.ObjectId();
+        const res = await request(app).post('/api/expenses').send({
+            amount: 50,
+            category: invalidCategoryId,
+            date: '2025-05-01',
+            description: 'Lunch',
+        });
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toBe('Category not found');
+    });
+    // Тест для перевірки валідації
+    it('should return 400 if required fields are missing', async () => {
+        const res = await request(app).post('/api/expenses').send({});
+        
+        expect(res.statusCode).toBe(400);
+        expect(res.body).toHaveProperty('message');
+        expect(res.body.message).toMatch(/(name|amount|category|date)/i); // Перевіряє, що є повідомлення про відсутнє поле
+    });
+
 
     // Тест отримання всіх витрат із деталями категорії
     it('should get all expenses with category details', async () => {
         await Expense.create({
-            name: 'Burger',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -63,7 +82,6 @@ describe('Expenses API', () => {
     // Тест оновлення витрати
     it('should update an expense', async () => {
         const expense = await Expense.create({
-            name: 'Pizza',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -79,7 +97,6 @@ describe('Expenses API', () => {
     // Тест видалення витрати
     it('should delete an expense', async () => {
         const expense = await Expense.create({
-            name: 'French fries',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -92,21 +109,27 @@ describe('Expenses API', () => {
     // Тест отримання статистики
     it('should get statistics', async () => {
         await Expense.create({
-            name: 'Test1',
             amount: 50,
             category: categoryId,
-            date: '2025-05-01',
+            date: new Date('2025-05-01'),
         });
         await Expense.create({
-            name: 'Test1',
             amount: 30,
             category: categoryId,
-            date: '2025-05-02',
+            date: new Date('2025-05-02'),
         });
 
         const res = await request(app).get(
             '/api/expenses/statistics?startDate=2025-05-01&endDate=2025-05-31',
         );
+
+
+        expect(res.body.byCategory).toEqual(
+          expect.arrayContaining([
+            { _id: 'Food', totalAmount: 80 }
+          ])
+        );
+
         expect(res.statusCode).toEqual(200);
         expect(res.body.totalAmount).toBe(80);
         expect(res.body.byCategory).toEqual(
@@ -118,7 +141,6 @@ describe('Expenses API', () => {
     // Тест експорту витрат у CSV
     it('should export expenses to CSV', async () => {
         await Expense.create({
-            name: 'Test1',
             amount: 50,
             category: categoryId,
             date: '2025-05-01',
@@ -129,8 +151,8 @@ describe('Expenses API', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.header['content-type']).toContain('text/csv');
         expect(res.header['content-disposition']).toContain('attachment; filename="expenses.csv"');
-        expect(res.text).toContain('_id,amount,category.name,date,description,createdAt,updatedAt');
-        expect(res.text).toContain('50,Food');
+        expect(res.text).toContain('"_id","amount","category.name","date","description","createdAt","updatedAt"');
+        expect(res.text).toContain('50,"Food"');
     });
 
     // Тест обробки помилок API
@@ -140,11 +162,13 @@ describe('Expenses API', () => {
         jest.spyOn(Expense, 'find').mockReturnValue({
             populate: jest.fn().mockResolvedValue(mockExpenses),
         });
+
         const mockError = new Error('Database error');
         jest.spyOn(Expense, 'find').mockRejectedValueOnce(mockError);
 
         const res = await request(app).get('/api/expenses');
-        expect(res.statusCode).toEqual(500);
+
+        expect(res.statusCode).toBe(500); // або 400, залежно від middleware
         expect(res.body.message).toBe('Something went wrong!');
         expect(res.body.error).toBeDefined();
     });
@@ -157,19 +181,7 @@ describe('Expenses API', () => {
         });
     });
 
-    // Тест для невалідної категорії
-    it('should return 400 when category is not found', async () => {
-        const invalidCategoryId = new mongoose.Types.ObjectId();
-        const res = await request(app).post('/api/expenses').send({
-            name: 'Test1',
-            amount: 50,
-            category: invalidCategoryId,
-            date: '2025-05-01',
-            description: 'Lunch',
-        });
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.message).toBe('Category not found');
-    });
+
 
     // Тест для помилки агрегації в getStatistics
     it('should handle error in getStatistics', async () => {

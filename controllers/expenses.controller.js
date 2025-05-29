@@ -26,6 +26,10 @@ exports.createExpense = async (req, res, next) => {
 // Отримання всіх витрат з популяцією категорій
 exports.getAllExpenses = async (req, res, next) => {
     try {
+        if (req.headers['x-force-error'] === 'true') {
+            throw new Error('Forced error for testing');
+        }
+
         const expenses = await Expense.find().populate('category', 'name description');
         res.status(200).json(expenses);
     } catch (error) {
@@ -82,7 +86,12 @@ exports.getStatistics = async (req, res, next) => {
         // Загальна сума витрат
         const total = await Expense.aggregate([
             { $match: filter },
-            { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
+            {
+              $group: {
+                _id: '$category',
+                totalAmount: { $sum: '$amount' },
+              },
+            },
         ]);
 
         // Розподіл за категоріями з популяцією назв
@@ -110,6 +119,11 @@ exports.getStatistics = async (req, res, next) => {
             { $match: filter },
             { $group: { _id: null, averageAmount: { $avg: '$amount' } } },
         ]);
+
+        console.log('Filter:', filter);
+        console.log('Aggregate result:', average);
+        console.log(total[0]);
+        console.log(average[0]);
 
         res.status(200).json({
             totalAmount: total[0]?.totalAmount || 0,
