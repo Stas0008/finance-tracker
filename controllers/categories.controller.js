@@ -1,5 +1,5 @@
-const Category = require('../models/category.model');
-const Expense = require('../models/expense.model');
+const Category = require("../models/category.model");
+const Expense = require("../models/expense.model");
 
 // Отримання списку категорій
 exports.getCategories = async (req, res, next) => {
@@ -30,16 +30,16 @@ exports.deleteCategory = async (req, res, next) => {
         const relatedExpenses = await Expense.findOne({ category: id });
         if (relatedExpenses) {
             return res.status(400).json({
-                message: 'Cannot delete category: it is assigned to one or more expenses.',
+                message: "Cannot delete category: it is assigned to one or more expenses.",
             });
         }
 
         const deleted = await Category.findByIdAndDelete(id);
         if (!deleted) {
-            return res.status(404).json({ message: 'Category not found' });
+            return res.status(404).json({ message: "Category not found" });
         }
 
-        return res.json({ message: 'Category deleted successfully' });
+        return res.json({ message: "Category deleted successfully" });
     } catch (error) {
         return next(error);
     }
@@ -58,7 +58,7 @@ exports.updateCategory = async (req, res, next) => {
         );
 
         if (!updatedCategory) {
-            return res.status(404).json({ message: 'Category not found' });
+            return res.status(404).json({ message: "Category not found" });
         }
 
         return res.json(updatedCategory);

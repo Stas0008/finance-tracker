@@ -1,6 +1,6 @@
-const { Parser } = require('json2csv');
-const Expense = require('../models/expense.model');
-const Category = require('../models/category.model');
+const { Parser } = require("json2csv");
+const Expense = require("../models/expense.model");
+const Category = require("../models/category.model");
 
 // Створення нової витрати
 exports.createExpense = async (req, res, next) => {
@@ -9,14 +9,14 @@ exports.createExpense = async (req, res, next) => {
 
         const categoryExists = await Category.findById(category);
         if (!categoryExists) {
-            return res.status(400).json({ message: 'Category not found' });
+            return res.status(400).json({ message: "Category not found" });
         }
 
         const expense = new Expense({ amount, category, date, description });
         await expense.save();
         return res.status(201).json(expense);
     } catch (error) {
-        if (error.name === 'ValidationError') {
+        if (error.name === "ValidationError") {
             return res.status(400).json({ message: error.message });
         }
         return next(error);
@@ -26,11 +26,11 @@ exports.createExpense = async (req, res, next) => {
 // Отримання всіх витрат з популяцією категорій
 exports.getAllExpenses = async (req, res, next) => {
     try {
-        if (req.headers['x-force-error'] === 'true') {
-            throw new Error('Forced error for testing');
+        if (req.headers["x-force-error"] === "true") {
+            throw new Error("Forced error for testing");
         }
 
-        const expenses = await Expense.find().populate('category', 'name description');
+        const expenses = await Expense.find().populate("category", "name description");
         res.status(200).json(expenses);
     } catch (error) {
         next(error);
@@ -44,7 +44,7 @@ exports.updateExpense = async (req, res, next) => {
         if (categoryId) {
             const category = await Category.findById(categoryId);
             if (!category) {
-                return res.status(400).json({ message: 'Category not found' });
+                return res.status(400).json({ message: "Category not found" });
             }
         }
         const expense = await Expense.findByIdAndUpdate(
@@ -53,7 +53,7 @@ exports.updateExpense = async (req, res, next) => {
             { new: true, runValidators: true },
         );
         if (!expense) {
-            return res.status(404).json({ message: 'Expense not found' });
+            return res.status(404).json({ message: "Expense not found" });
         }
         return res.status(200).json(expense);
     } catch (error) {
@@ -66,9 +66,9 @@ exports.deleteExpense = async (req, res, next) => {
     try {
         const expense = await Expense.findByIdAndDelete(req.params.id);
         if (!expense) {
-            return res.status(404).json({ message: 'Expense not found' });
+            return res.status(404).json({ message: "Expense not found" });
         }
-        return res.status(200).json({ message: 'Expense deleted successfully' });
+        return res.status(200).json({ message: "Expense deleted successfully" });
     } catch (error) {
         return next(error);
     }
@@ -88,8 +88,8 @@ exports.getStatistics = async (req, res, next) => {
             { $match: filter },
             {
                 $group: {
-                    _id: '$category',
-                    totalAmount: { $sum: '$amount' },
+                    _id: "$category",
+                    totalAmount: { $sum: "$amount" },
                 },
             },
         ]);
@@ -99,17 +99,17 @@ exports.getStatistics = async (req, res, next) => {
             { $match: filter },
             {
                 $lookup: {
-                    from: 'categories',
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'categoryDetails',
+                    from: "categories",
+                    localField: "category",
+                    foreignField: "_id",
+                    as: "categoryDetails",
                 },
             },
-            { $unwind: '$categoryDetails' },
+            { $unwind: "$categoryDetails" },
             {
                 $group: {
-                    _id: '$categoryDetails.name',
-                    totalAmount: { $sum: '$amount' },
+                    _id: "$categoryDetails.name",
+                    totalAmount: { $sum: "$amount" },
                 },
             },
         ]);
@@ -117,11 +117,11 @@ exports.getStatistics = async (req, res, next) => {
         // Середня сума витрат
         const average = await Expense.aggregate([
             { $match: filter },
-            { $group: { _id: null, averageAmount: { $avg: '$amount' } } },
+            { $group: { _id: null, averageAmount: { $avg: "$amount" } } },
         ]);
 
-        console.log('Filter:', filter);
-        console.log('Aggregate result:', average);
+        console.log("Filter:", filter);
+        console.log("Aggregate result:", average);
         console.log(total[0]);
         console.log(average[0]);
 
@@ -138,21 +138,21 @@ exports.getStatistics = async (req, res, next) => {
 // Експорт витрат у CSV
 exports.exportExpenses = async (req, res, next) => {
     try {
-        const expenses = await Expense.find().populate('category', 'name');
+        const expenses = await Expense.find().populate("category", "name");
         const fields = [
-            '_id',
-            'amount',
-            'category.name',
-            'date',
-            'description',
-            'createdAt',
-            'updatedAt',
+            "_id",
+            "amount",
+            "category.name",
+            "date",
+            "description",
+            "createdAt",
+            "updatedAt",
         ];
         const json2csvParser = new Parser({ fields });
         const csv = json2csvParser.parse(expenses);
 
-        res.header('Content-Type', 'text/csv');
-        res.attachment('expenses.csv');
+        res.header("Content-Type", "text/csv");
+        res.attachment("expenses.csv");
         res.status(200).send(csv);
     } catch (error) {
         next(error);
