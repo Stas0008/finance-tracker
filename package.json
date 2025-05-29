@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
+    "depd": "^2.0.0",
     "detect-port": "^2.1.0",
     "dotenv": "^16.0.3",
     "express": "~4.16.1",
